@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Não Acredite nas Mentiras — Protótipo</title>
+  <style>
+    /* ESTÉTICA: minimalista, misteriosa */
+    :root{--bg:#000;--fg:#eee;--accent:#9bd;--muted:#999}
+    html,body{height:100%;}
+    body{
+      margin:0;background:var(--bg);color:var(--fg);font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";display:flex;align-items:center;justify-content:center;padding:2rem;
+    }
+    .frame{max-width:900px;width:100%;}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem}
+    h1{font-weight:600;margin:0;font-size:1.25rem;letter-spacing:0.06em}
+    .sub{color:var(--muted);font-size:0.9rem}
+
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border:1px solid rgba(255,255,255,0.06);padding:2rem;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.6)}
+
+    .center{text-align:center}
+    .content{font-family: 'Courier New', monospace;line-height:1.5}
+
+    img.reveal{max-width:100%;display:block;margin:1rem auto}
+
+    .input-row{display:flex;gap:0.5rem;align-items:center;justify-content:center;margin-top:1rem}
+    input.answer{background:transparent;border:1px solid rgba(255,255,255,0.12);color:var(--fg);padding:0.6rem 0.75rem;border-radius:6px;min-width:220px}
+    button.btn{background:none;border:1px solid rgba(255,255,255,0.12);color:var(--fg);padding:0.6rem 0.9rem;border-radius:8px;cursor:pointer}
+    button.btn:active{transform:translateY(1px)}
+
+    .hint{color:var(--muted);font-size:0.9rem;margin-top:0.7rem;text-align:center}
+    .small{font-size:0.85rem;color:var(--muted)}
+
+    .levels{display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center;margin-top:1rem}
+    .level-pill{padding:0.25rem 0.6rem;border-radius:999px;border:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.01);font-size:0.85rem}
+
+    .footer{display:flex;justify-content:space-between;align-items:center;margin-top:1rem;color:var(--muted);font-size:0.85rem}
+
+    /* Mensagens de feedback */
+    .message{margin-top:1rem;text-align:center;padding:0.7rem;border-radius:8px}
+    .message.ok{background:linear-gradient(90deg,rgba(155,220,200,0.06),transparent);border:1px solid rgba(155,220,200,0.08);color:var(--accent)}
+    .message.err{background:linear-gradient(90deg,rgba(255,120,120,0.02),transparent);border:1px solid rgba(255,100,100,0.06);color:#ff9b9b}
+
+    /* Print-friendly */
+    @media print{
+      body{background:#fff;color:#000}
+      .card{border:none;box-shadow:none;background:transparent}
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <header>
+      <div>
+        <h1>Não Acredite nas Mentiras — Protótipo</h1>
+        <div class="sub">Protótipo grátis — clone de estilo para jogar com amigos</div>
+      </div>
+      <div class="small">Níveis: <span id="total-levels">0</span> • Progresso: <span id="progress">0%</span></div>
+    </header>
+
+    <main class="card">
+      <section id="stage-area">
+        <!-- Conteúdo gerado por JS -->
+      </section>
+
+      <div class="levels" id="levels-list" aria-hidden="true"></div>
+
+      <div class="footer">
+        <div class="small">Dicas: mantenha o site offline para testes. Respostas sem acentuação são aceitas.</div>
+        <div class="small">Feito por você — edite enigmas no arquivo JS facilmente.</div>
+      </div>
+    </main>
+  </div>
+
+<script>
+// ---------- CONFIGURAÇÃO DO JOGO (edite aqui) ----------
+// Cada nível tem: id, title, html (conteúdo mostrado), answer (resposta em minúsculas sem acentos), hint
+// Você pode usar HTML simples dentro de html: <img>, <audio>, <pre>, <p>, etc.
+
+const levels = [
+  {
+    id:1,
+    title: 'Nível 1 — A nota',
+    html: `<div class="center content"><p>Ele escreveu uma palavra com a caneta que virou pó.</p>
+           <pre style="display:inline-block;text-align:left;border:1px dashed rgba(255,255,255,0.04);padding:12px;margin-top:8px">S E G R E D O</pre>
+           <p style="margin-top:12px">Uma palavra, clareada. O que ele quer que você saiba?</p></div>`,
+    answer: 'segredo',
+    hint: 'É a palavra mostrada na nota.'
+  },
+  {
+    id:2,
+    title: 'Nível 2 — O arquivo de áudio',
+    html: `<div class="center content"><p>Um áudio com voz baixa. <br>Ouça com o volume baixo e tente inverter.</p>
+           <audio controls preload="none">
+             <source src="audio/sample-reverse.mp3" type="audio/mpeg">
+             Seu navegador não suporta áudio.
+           </audio>
+           <p style="margin-top:8px">(arquivo de exemplo — substitua por um áudio invertido real)</p></div>`,
+    answer: 'perigo',
+    hint: 'Palavra curta que aparece na história. Pense em algo ameaçador.'
+  },
+  {
+    id:3,
+    title: 'Nível 3 — Código na imagem',
+    html: `<div class="center content"><p>Observe a imagem — as letras formam algo quando você ajusta o contraste.</p>
+           <img class="reveal" src="images/sample-contrast.png" alt="imagem enigmática">
+           <p>Use o seu editor de imagens favorito para ajustar brilho/contraste.</p></div>`,
+    answer: 'falso',
+    hint: 'O contrário de verdadeiro.'
+  },
+  {
+    id:4,
+    title: 'Nível 4 — Mensagem oculta',
+    html: `<div class="center content"><p>As primeiras letras de cada linha formam uma palavra.</p>
+           <pre style="text-align:left">Muitas vezes ele escreve
+E algumas frases soam iguais
+Ninguém nota linhas iniciadas assim
+Sabe o que formarão?</pre></div>`,
+    answer: 'mens',
+    hint: 'Leia só as primeiras letras.'
+  },
+  {
+    id:5,
+    title: 'Nível 5 — Meta-enigma (junte as respostas)',
+    html: `<div class="center content"><p>Junte as respostas que você já obteve. Elas formam o próximo passo.</p>
+           <p class="small">(Este é um exemplo de metapuzzle)</p></div>`,
+    answer: 'segredoperigofalso',
+    hint: 'Concatene as palavras anteriores sem espaços.'
+  }
+];
+
+// ---------- FIM DA CONFIGURAÇÃO ----------
+
+// Utilitários: normalizar resposta (minusculas, sem acentos, tira espaços das pontas)
+function normalize(s){
+  if(!s) return '';
+  // remover acentos simples
+  const from = "ãàáâäèéêëìíîïòóôõöùúûüçñ";
+  const to   = "aaaaaeeeeiiiiooooouuuucn";
+  s = s.toLowerCase();
+  let res = '';
+  for(let i=0;i<s.length;i++){
+    const ch = s[i];
+    const idx = from.indexOf(ch);
+    res += idx>-1 ? to[idx] : ch;
+  }
+  return res.trim();
+}
+
+// Estado do jogo
+let current = 1;
+const total = levels.length;
+const storageKey = 'dnbhl_prototype_progress_v1';
+
+// Carrega progresso salvo
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(storageKey);
+    if(!raw) return;
+    const obj = JSON.parse(raw);
+    if(obj.current) current = obj.current;
+  }catch(e){console.warn('no progress');}
+}
+
+function saveProgress(){
+  try{localStorage.setItem(storageKey, JSON.stringify({current}));}catch(e){}
+}
+
+function renderLevelsList(){
+  const el = document.getElementById('levels-list');
+  el.innerHTML = '';
+  for(const lv of levels){
+    const pill = document.createElement('div');
+    pill.className = 'level-pill';
+    pill.textContent = lv.id + '.' + (lv.title || '');
+    el.appendChild(pill);
+  }
+}
+
+function renderStage(){
+  const place = document.getElementById('stage-area');
+  place.innerHTML = '';
+  const lv = levels.find(x=>x.id===current);
+  if(!lv){
+    place.innerHTML = `<div class="center content"><h2>Parabéns — você terminou!</h2><p class="small">Reinicie o progresso para jogar novamente.</p>
+      <div style="margin-top:12px;display:flex;gap:0.5rem;justify-content:center"><button class="btn" onclick="resetProgress()">Reiniciar</button></div></div>`;
+    document.getElementById('progress').textContent = '100%';
+    return;
+  }
+
+  document.getElementById('total-levels').textContent = total;
+  const percent = Math.round(((current-1)/total)*100);
+  document.getElementById('progress').textContent = percent + '%';
+
+  const container = document.createElement('div');
+  container.className = 'center';
+  container.innerHTML = `<h2 style="margin-top:0;">${lv.title}</h2>
+    <div class="content" id="level-content">${lv.html}</div>
+    <div class="input-row">
+      <input class="answer" id="answer-input" autocomplete="off" placeholder="Digite a resposta">
+      <button class="btn" id="submit-btn">Enviar</button>
+    </div>
+    <div id="hint" class="hint">Dica: ${lv.hint || '—'}</div>
+    <div id="message-area"></div>
+  `;
+
+  place.appendChild(container);
+
+  // comportamento
+  document.getElementById('submit-btn').addEventListener('click', ()=>{
+    checkAnswer();
+  });
+  document.getElementById('answer-input').addEventListener('keydown', (e)=>{
+    if(e.key==='Enter') checkAnswer();
+  });
+}
+
+function showMessage(text, ok){
+  const area = document.getElementById('message-area');
+  area.innerHTML = `<div class="message ${ok? 'ok':'err'}">${text}</div>`;
+}
+
+function checkAnswer(){
+  const input = document.getElementById('answer-input');
+  if(!input) return;
+  const raw = input.value || '';
+  const norm = normalize(raw).replace(/\s+/g,'');
+
+  const lv = levels.find(x=>x.id===current);
+  if(!lv) return;
+  const correct = normalize(lv.answer).replace(/\s+/g,'');
+  if(norm === correct){
+    showMessage('Resposta correta — avançando...', true);
+    current = current + 1;
+    saveProgress();
+    setTimeout(()=>{renderStage();},700);
+  } else {
+    showMessage('Resposta incorreta. Pense como ELE. (dica: ' + (lv.hint||'tente olhar de outro ângulo') + ')', false);
+  }
+}
+
+function resetProgress(){
+  current = 1;
+  saveProgress();
+  renderStage();
+}
+
+// Inicialização
+loadProgress();
+renderLevelsList();
+renderStage();
+
+// Extras: funções úteis para criadores
+window.addLevel = function(obj){
+  // usar apenas em dev: adiciona nível ao final em runtime
+  const maxId = Math.max(...levels.map(l=>l.id));
+  obj.id = maxId+1;
+  levels.push(obj);
+  renderLevelsList();
+  renderStage();
+}
+
+window.resetProgress = resetProgress;
+
+</script>
+
+<!-- INSTRUÇÕES RÁPIDAS (não removê-las) -->
+<!--
+  Como usar este protótipo:
+  1) Salve este arquivo como index.html
+  2) Substitua as imagens e audios em src="images/..." e src="audio/..." por arquivos reais.
+  3) Edite o array `levels` no topo do script para acrescentar ou mudar enigmas.
+  4) Faça deploy grátis no GitHub Pages: crie repositório, faça upload do index.html, ative Pages.
+  5) Se quiser validação mais segura, faça chamadas a um backend (Firebase/Netlify/Functions) em vez de comparar no cliente.
+
+  Recursos recomendados para avançar:
+  - GitHub Pages (hospedagem grátis)
+  - Cloudinary / Imgur para hospedar imagens grátis
+  - Audacity para inverter áudios e gerar pistas sonoras
+  - Se quiser proteção por senha, use Google Forms embutido ou um backend simples.
+-->
+
+</body>
+</html>
